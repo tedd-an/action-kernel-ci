@@ -57,15 +57,6 @@ Linux Bluetooth
 
 '''
 
-TEST_REPORT =  '''##############################
-Test: {} - {} - {:.2f} seconds
-{}
-{}
-
-'''
-
-ONELINE_RESULT = '''{test:<30}{result:<10}{elapsed:.2f} seconds\n'''
-
 def requests_url(url):
     """ Helper function to requests WEB API GET with URL """
 
@@ -329,8 +320,8 @@ class CiBase:
     output = ""
 
     def success(self):
-        self.verdict = Verdict.PASS
         self.end_timer()
+        self.verdict = Verdict.PASS
 
     def add_success(self, msg):
         self.verdict = Verdict.PASS
@@ -468,7 +459,7 @@ class GitLint(CiBase):
         logger.debug("gitlint_config = %s" % self.gitlint_config)
 
     def run(self):
-        logger.debug("##### Run GitLint Test #####")
+        logger.debug("##### Run Gitlint Test #####")
         self.start_timer()
 
         self.enable = config_enable(config, self.name)
@@ -484,7 +475,7 @@ class GitLint(CiBase):
                 logger.info("Skip workflow patch")
                 continue
 
-            output = self.run_checkgitlint(commit.sha)
+            output = self.run_gitlint(commit.sha)
             if output != None:
                 msg = "{}\n{}".format(commit.commit.message.splitlines()[0],
                                       output)
@@ -493,7 +484,7 @@ class GitLint(CiBase):
         if self.verdict != Verdict.FAIL:
             self.success()
 
-    def run_checkgitlint(self, sha):
+    def run_gitlint(self, sha):
         """
         Run checkpatch script with commit sha.
         On success, it returns None.
@@ -889,6 +880,15 @@ def run_ci(args):
             github_pr_post_comment(test)
 
     return num_fails
+
+TEST_REPORT =  '''##############################
+Test: {} - {} - {:.2f} seconds
+{}
+{}
+
+'''
+
+ONELINE_RESULT = '''{test:<30}{result:<10}{elapsed:.2f} seconds\n'''
 
 def report_ci():
     """
