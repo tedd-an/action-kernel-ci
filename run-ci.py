@@ -295,6 +295,16 @@ def compose_email(title, body, submitter, msgid, attachments=[]):
     # Send email
     send_email(sender, receivers, msg)
 
+def is_workflow_patch(commit):
+    """
+    If the message contains a word "workflow", then return True.
+    This is basically to prevent the workflow patch for github from running
+    checkpath and gitlint tests.
+    """
+    if commit.commit.message.find("workflow:") >= 0:
+        return True
+
+    return False
 
 class Verdict(Enum):
     PENDING = 0
@@ -386,19 +396,6 @@ class CheckPatch(CiBase):
                 self.checkpatch_pl = config[self.name]['bin_path']
         logger.debug("checkpatch_pl = %s" % self.checkpatch_pl)
 
-    def is_workflow_patch(self, commit):
-        """
-        If the message contains a word "workflow", then return true.
-        This is basically to prevent the workflow patch for github from running
-        checkpatch and send an email to the submitter, which is nothong to do
-        with the submitter
-        """
-        if commit.commit.message.find("workflow:") >= 0:
-            return True
-
-        return False
-
-
     def run(self):
         logger.debug("##### Run CheckPatch Test #####")
         self.start_timer()
@@ -411,8 +408,8 @@ class CheckPatch(CiBase):
             self.skip("Disabled in configuration")
 
         for commit in github_commits:
-            # Skip checkpatch if the patch is for workflow - workaround
-            if self.is_workflow_patch(commit):
+            # Skip test if the patch is workflow path
+            if is_workflow_patch(commit):
                 logger.info("Skip workflow patch")
                 continue
 
@@ -470,18 +467,6 @@ class GitLint(CiBase):
                 self.gitlint_config = config[self.name]['config_path']
         logger.debug("gitlint_config = %s" % self.gitlint_config)
 
-    def is_workflow_patch(self, commit):
-        """
-        If the message contains a word "workflow", then return true.
-        This is basically to prevent the workflow patch for github from running
-        checkpatch and send an email to the submitter, which is nothong to do
-        with the submitter
-        """
-        if commit.commit.message.find("workflow:") >= 0:
-            return True
-
-        return False
-
     def run(self):
         logger.debug("##### Run GitLint Test #####")
         self.start_timer()
@@ -494,8 +479,8 @@ class GitLint(CiBase):
             self.skip("Disabled in configuration")
 
         for commit in github_commits:
-            # Skip checkpatch if the patch is for workflow - workaround
-            if self.is_workflow_patch(commit):
+            # Skip test if the patch is workflow path
+            if is_workflow_patch(commit):
                 logger.info("Skip workflow patch")
                 continue
 
